@@ -170,27 +170,20 @@ export function checkBuild(distDir = path.join(ROOT, 'dist')) {
   }
 
   for (const match of html.matchAll(
-    /<[a-z][\w-]*\b[^>]*\b(poster|srcset)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>/gi
+    /<[a-z][\w-]*\b[^>]*\bposter\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>/gi
   )) {
-    const attribute = match[1].toLowerCase();
-    const value = (match[2] ?? match[3] ?? match[4]).trim();
-
-    if (attribute === 'poster') {
-      if (!value.startsWith('data:')) {
-        errors.push(`external media reference: ${value}`);
-      }
-      continue;
+    const value = (match[1] ?? match[2] ?? match[3]).trim();
+    if (!value.startsWith('data:')) {
+      errors.push(`external media reference: ${value}`);
     }
+  }
 
-    const candidates = value
-      .split(',')
-      .map((candidate) => candidate.trim().split(/\s+/)[0])
-      .filter(Boolean);
-    for (const candidate of candidates) {
-      if (!candidate.startsWith('data:')) {
-        errors.push(`external srcset candidate: ${candidate}`);
-      }
-    }
+  // srcset is deliberately rejected rather than parsed: its comma grammar is
+  // ambiguous with data: URLs, and this shell only needs one inlined image.
+  if (/\bsrcset\s*=/i.test(html)) {
+    errors.push(
+      'srcset is not allowed; inline one data: URL in src instead'
+    );
   }
 
   for (const tag of html.matchAll(/<(?:image|use)\b[^>]*>/gi)) {

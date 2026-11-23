@@ -12,7 +12,9 @@ rebuilds the techniques in original code.
 
 **The built app must be one single, self-contained `.html` file.** HTML, CSS,
 JavaScript, Three.js and the model data are inlined; there is no runtime CDN, no
-separate JS/CSS/image asset, and no server-side code. Authoring can use Vite +
+runtime network request of any kind (including web fonts), no separate
+JS/CSS/image asset, and no server-side code. Inline media uses `data:` URLs;
+`srcset` is rejected. Authoring can use Vite +
 `vite-plugin-singlefile`, but the release artefact stays one file. This is
 non-negotiable — see [`docs/decisions/0001-single-file.md`](docs/decisions/0001-single-file.md).
 
@@ -39,12 +41,12 @@ non-negotiable — see [`docs/decisions/0001-single-file.md`](docs/decisions/000
 | Size | 960,097 bytes, 4,064 lines, LF only |
 | SHA-256 | `e1f2a511…f30a4cf5` (see `reference/SHA256SUMS`) |
 | Engine | Three.js **r128** + OrbitControls, both MIT, inlined |
-| External assets | **none** — no GLB, glTF, HDRI, image textures or CDN scripts |
+| External assets | **none bundled** — no GLB, glTF, HDRI, image textures or CDN scripts; the reference may load Google Fonts at runtime |
 | App script | 2,479 lines, 246 functions (after the inlined engine) |
 | Model | 3 floors · 74 named walls · 57 openings (43 windows, 14 doors) · 8 balconies · 12-vertex roof · stair room · terrace · 8 steps |
 | Cost model | 37 priced items · 8 stone finishes · 4 sections |
 | Rendering | GPU stone generator, AO accumulation + camera jitter, bloom/grade |
-| Fonts | Google Fonts at runtime; the app falls back to system fonts offline |
+| Fonts | Reference: Google Fonts at runtime. Rebuild: system fonts only, no network. |
 
 The model is a **surveyed digital twin**, not a generated massing: every wall has
 an Arabic room name, every opening has absolute coordinates and a sill height,
@@ -119,8 +121,9 @@ Two honest caveats:
   cannot revoke rights already granted to anyone who obtained a copy under MIT.
 - The inlined Three.js r128 and OrbitControls remain **MIT** and are *not*
   restricted by the noncommercial terms. Their notices are preserved in
-  [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). The Google Fonts loaded at
-  runtime are SIL OFL 1.1 and are not redistributed here.
+  [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). The reference loads Google Fonts at runtime;
+  those fonts are SIL OFL 1.1 and are not redistributed here. The rebuild does
+  not load them.
 
 This is a source-available licence, not an OSI open-source licence. If you need
 "no commercial use and no rights to the source at all", that is a proprietary

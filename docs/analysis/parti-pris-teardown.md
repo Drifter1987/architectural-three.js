@@ -50,7 +50,7 @@ The file is a complete application in one document, in four layers:
 
 The data islands are `<script type="application/json">`, parsed directly — no
 fetch, no loader, no build step. The whole app boots from `file://` except for
-the optional Google Fonts and the “save still” path.
+the reference's optional Google Fonts and the “save still” path.
 
 **Why this matters:** the geometry is not inferred at runtime. It is embedded
 data, and the script is a *renderer for that data*.

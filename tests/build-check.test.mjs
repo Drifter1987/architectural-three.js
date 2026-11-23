@@ -123,14 +123,29 @@ test('rejects an SVG use reference to a sibling sprite', () => {
   });
 });
 
-test('rejects a mixed srcset with a relative candidate', () => {
+test('rejects a data-URI srcset outright instead of splitting at its comma', () => {
   const html = VALID_HTML.replace(
     '<main>shell</main>',
-    '<main>shell</main><img srcset="data:image/png;base64,AA 1x, hero-2x.png 2x" alt="">'
+    '<main>shell</main><img srcset="data:image/png;base64,AA 1x" alt="">'
   );
   withDist({ 'index.html': html }, (result) => {
     assert.equal(result.ok, false);
-    assert.ok(result.errors.some((error) => error.includes('srcset candidate')));
+    assert.ok(result.errors.some((error) => error.includes('srcset is not allowed')));
+    assert.equal(
+      result.errors.some((error) => error.includes('srcset candidate')),
+      false,
+      'the old comma-splitting diagnostic must be gone'
+    );
+  });
+});
+
+test('accepts a single data: image source', () => {
+  const html = VALID_HTML.replace(
+    '<main>shell</main>',
+    '<main>shell</main><img src="data:image/png;base64,AA" alt="">'
+  );
+  withDist({ 'index.html': html }, (result) => {
+    assert.equal(result.ok, true, result.errors.join('\n'));
   });
 });
 

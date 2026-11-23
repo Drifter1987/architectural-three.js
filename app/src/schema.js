@@ -72,7 +72,7 @@ export function validateModel(model, options = {}) {
     add('$.name', 'must be a non-empty string when present');
   }
 
-  const floorByKey = new Map();
+  const seenFloorKeys = new Set();
   const floorEdges = new Map();
 
   if (!Array.isArray(model.floors) || model.floors.length === 0) {
@@ -90,10 +90,10 @@ export function validateModel(model, options = {}) {
 
       if (!isText(floor.key)) {
         add(`${path}.key`, 'must be a non-empty string');
-      } else if (floorByKey.has(floor.key)) {
+      } else if (seenFloorKeys.has(floor.key)) {
         add(`${path}.key`, `duplicate floor key "${floor.key}"`);
       } else {
-        floorByKey.set(floor.key, floor);
+        seenFloorKeys.add(floor.key);
       }
 
       if (!isText(floor.name)) {
@@ -164,7 +164,6 @@ export function validateModel(model, options = {}) {
   }
 
   const openings = model.openings;
-  const placed = new Set();
 
   if (!Array.isArray(openings)) {
     add('$.openings', 'must be an array');
@@ -251,24 +250,6 @@ export function validateModel(model, options = {}) {
           path,
           `opening is not listed on edge "${opening.floor}"[${opening.edge}]`
         );
-      } else {
-        placed.add(openingIndex);
-      }
-    });
-  }
-
-  if (Array.isArray(openings)) {
-    openings.forEach((opening, openingIndex) => {
-      if (isRecord(opening) && !placed.has(openingIndex)) {
-        const alreadyReported = errors.some(
-          (error) => error.path === `$.openings[${openingIndex}]`
-        );
-        if (!alreadyReported) {
-          add(
-            `$.openings[${openingIndex}]`,
-            'is not placed on any wall edge'
-          );
-        }
       }
     });
   }

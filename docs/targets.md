@@ -58,7 +58,7 @@ Any claim of a speed-up must include before/after numbers captured with
 | Schema validation | invalid wall/opening rejected before build |
 | Money math | every total derived from geometry, unit-tested |
 | Licence | no commercial use; third-party notices preserved |
-| Build | single HTML output; no runtime network except optional fonts |
+| Build | single HTML output; no runtime network of any kind |
 
 ## 5. The “definition of realistic” protocol
 

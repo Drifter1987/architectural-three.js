@@ -20,15 +20,16 @@ server. Those are fine for development but must not change what ships.
 2. Authoring may use modules and npm **only if** the build emits that single
    file. The chosen tool is Vite + `vite-plugin-singlefile`, pinned, with the
    output committed under `dist/` only when a release is cut.
-3. **No runtime CDN.** Three.js is bundled. The only permitted network request
-   is the optional Google Fonts stylesheet, and the app must remain usable
-   without it.
+3. **No runtime network and no CDN.** Three.js is bundled. The shipped file
+   must not fetch any script, stylesheet, font, image or API at runtime. Web
+   fonts are limited to system fonts or inlined data URLs; Google Fonts is not
+   permitted.
 4. The reference file remains a separate, frozen artefact. It is never the build
    input and never edited.
 5. Build output must stay under **1.2 MB** and load with zero 404s.
    `scripts/check-build.mjs` enforces this after every `npm run build`: it fails
-   on a second file, a subdirectory, an external `src`/`href`, a CSS `url()`,
-   an `@import`, a source map, or output over the size budget.
+   on a second file, a subdirectory, an external `src`/`href`, a `srcset`, a
+   CSS `url()`, an `@import`, a source map, or output over the size budget.
 
 ## Consequences
 
@@ -37,6 +38,8 @@ server. Those are fine for development but must not change what ships.
   parsed at boot, exactly like the reference.
 - Workers, WASM and external textures are allowed only when inlined as data
   URLs or bundled assets, and only if the size budget still holds.
+- The earlier optional Google Fonts exception is removed. The rebuild must be
+  fully usable offline with system fonts or inlined font data.
 - Source maps are not shipped inside the HTML.
 
 ## Alternatives rejected
