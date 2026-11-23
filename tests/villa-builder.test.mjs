@@ -8,6 +8,12 @@ import { Box3 } from 'three';
 
 import { importReferenceModel } from '../app/src/model/import.js';
 import {
+  DEFAULT_MATERIAL_STATE,
+  applyMaterialState,
+  createMaterials,
+  resolveMaterialState
+} from '../app/src/scene/materials.js';
+import {
   buildVilla,
   stairEdgeOpenings,
   wallHoles
@@ -300,6 +306,62 @@ test('batches every window part into one mesh per material on request', () => {
     0
   );
   assert.equal(mergedVertices, sourceVertices);
+});
+
+test('splits the main roof into a tiled top and plain side material', () => {
+  const roof = group.getObjectByName('slab:roof');
+  assert.ok(roof, 'missing roof slab');
+  assert.ok(Array.isArray(roof.material), 'roof must use two materials');
+  assert.equal(roof.material.length, 2);
+  assert.equal(roof.material[0], materials.roofTop);
+  assert.equal(roof.material[1], materials.roofSide);
+  assert.equal(materials.roof, materials.roofSide);
+
+  const roofGroups = roof.geometry.groups.map((entry) => entry.materialIndex);
+  assert.deepEqual(roofGroups, [0, 1], 'extrude top and sides need groups');
+
+  const stairRoof = group.getObjectByName('stair:roof');
+  assert.ok(stairRoof);
+  assert.deepEqual(stairRoof.material, [materials.roofTop, materials.roofSide]);
+});
+
+test('resolves stone, frame and roof finishes with a no-texture fallback', () => {
+  const local = createMaterials(DEFAULT_MATERIAL_STATE, { textures: false });
+  assert.equal(local.wall.map, null);
+  assert.equal(local.wall.roughness, 0.88);
+  assert.equal(local.roof, local.roofSide);
+
+  applyMaterialState(
+    local,
+    {
+      finish: 'mbawwaz',
+      tone: 'honey',
+      joint: 'rebate',
+      frame: 'wood',
+      roof: 'flat'
+    },
+    { textures: false }
+  );
+
+  assert.equal(local.wall.color.getHexString(), 'd8c49c');
+  assert.equal(local.wall.roughness, 0.96);
+  assert.equal(local.frame.color.getHexString(), '6a4a2f');
+  assert.equal(local.iron.color.getHexString(), '3b2c20');
+  assert.equal(local.roofTop.color.getHexString(), 'bdb6a8');
+  assert.equal(local.roofSide.color.getHexString(), 'b9b2a3');
+
+  const fallback = resolveMaterialState({
+    finish: 'missing',
+    tone: 'missing',
+    joint: 'missing',
+    frame: 'missing',
+    roof: 'missing'
+  });
+  assert.equal(fallback.state.finish, 'msamsam');
+  assert.equal(fallback.state.tone, 'white');
+  assert.equal(fallback.state.joint, 'thin');
+  assert.equal(fallback.state.frame, 'black');
+  assert.equal(fallback.state.roof, 'tiles');
 });
 
 test('builds the stair room shell with two windows and its roof door', () => {

@@ -1,11 +1,8 @@
 import {
   BoxGeometry,
-  DoubleSide,
   ExtrudeGeometry,
   Group,
   Mesh,
-  MeshPhysicalMaterial,
-  MeshStandardMaterial,
   Path,
   Shape,
   ShapeGeometry,
@@ -14,79 +11,10 @@ import {
 
 import { buildWindow } from '../components/window.js';
 import { batchByMaterial } from './batch.js';
+import { createMaterials } from './materials.js';
 
 const PARAPET_HEIGHT = 1.05;
 const PARAPET_DEPTH = 0.15;
-
-function makeMaterials() {
-  return {
-    wall: new MeshStandardMaterial({
-      color: 0xe8e1d2,
-      roughness: 0.94,
-      metalness: 0,
-      side: DoubleSide
-    }),
-    soil: new MeshStandardMaterial({
-      color: 0x81735f,
-      roughness: 1,
-      metalness: 0,
-      side: DoubleSide
-    }),
-    slab: new MeshStandardMaterial({
-      color: 0xcfc8b9,
-      roughness: 0.9,
-      metalness: 0
-    }),
-    trim: new MeshStandardMaterial({
-      color: 0xd9d1bf,
-      roughness: 0.86,
-      metalness: 0
-    }),
-    roof: new MeshStandardMaterial({
-      color: 0x9b4d35,
-      roughness: 0.82,
-      metalness: 0
-    }),
-    frame: new MeshStandardMaterial({
-      color: 0x1d2627,
-      roughness: 0.45,
-      metalness: 0.35
-    }),
-    iron: new MeshStandardMaterial({
-      color: 0x202526,
-      roughness: 0.55,
-      metalness: 0.25
-    }),
-    glass: new MeshPhysicalMaterial({
-      color: 0xbfd9de,
-      transparent: true,
-      opacity: 0.36,
-      roughness: 0.12,
-      metalness: 0,
-      side: DoubleSide,
-      depthWrite: false
-    }),
-    doorGlass: new MeshPhysicalMaterial({
-      color: 0x78969b,
-      transparent: true,
-      opacity: 0.52,
-      roughness: 0.18,
-      metalness: 0,
-      side: DoubleSide,
-      depthWrite: false
-    }),
-    shutterGreen: new MeshStandardMaterial({
-      color: 0x3f5a45,
-      roughness: 0.82,
-      metalness: 0
-    }),
-    shutterWood: new MeshStandardMaterial({
-      color: 0x6b4a2f,
-      roughness: 0.78,
-      metalness: 0
-    })
-  };
-}
 
 function segmentLength(a, b) {
   return Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -369,7 +297,7 @@ function addStairRoom(group, model, materials, stats, windowGroups, batchOpening
       stair.poly,
       stair.z0 + stair.h,
       0.2,
-      materials.roof,
+      [materials.roofTop, materials.roofSide],
       'stair:roof'
     )
   ) {
@@ -377,10 +305,10 @@ function addStairRoom(group, model, materials, stats, windowGroups, batchOpening
   }
 }
 
-export function buildVilla(model, { batchOpenings = false } = {}) {
+export function buildVilla(model, { batchOpenings = false, materialState } = {}) {
   const group = new Group();
   group.name = 'villa';
-  const materials = makeMaterials();
+  const materials = createMaterials(materialState);
   const stats = { walls: 0, openings: 0, slabs: 0, balconies: 0 };
   const windowGroups = [];
   const floors = new Map((model.floors || []).map((floor) => [floor.key, floor]));
@@ -438,7 +366,7 @@ export function buildVilla(model, { batchOpenings = false } = {}) {
       model.roof.poly,
       model.roof.z0,
       Math.max(0.25, model.roof.z1 - model.roof.z0),
-      materials.roof,
+      [materials.roofTop, materials.roofSide],
       'slab:roof'
     )
   ) {

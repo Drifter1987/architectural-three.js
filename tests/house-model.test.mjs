@@ -3,8 +3,17 @@ import { test } from 'node:test';
 
 import { EXAMPLE_HOUSE } from '../app/src/model/example-house.js';
 import { createHouseModel } from '../app/src/model/house.js';
+import {
+  HOUSE_SAMPLES,
+  SAMPLE_HOUSES_BY_KEY
+} from '../app/src/model/houses/index.js';
+import { STARTER_HOUSE } from '../app/src/model/starter-house.js';
 import { validateModel } from '../app/src/schema.js';
 import { buildVilla, wallHoles } from '../app/src/scene/villa.js';
+import {
+  normalizedToRawEdge,
+  rawToNormalizedEdge
+} from '../app/src/ui/house-editor.js';
 
 function near(actual, expected, epsilon = 1e-6) {
   assert.ok(
@@ -116,6 +125,106 @@ test('renders the generated house with the same builder as the reference villa',
   assert.ok(door.children.some((child) => child.material === built.materials.iron));
   near(door.position.x, 8.6);
   near(door.position.y, 0);
+});
+
+test('maps editor edge order through the model ring normalization', () => {
+  const shifted = [
+    [0, 0],
+    [14, 0],
+    [14, 9],
+    [8, 9],
+    [8, 5],
+    [-1, 5]
+  ];
+  assert.equal(rawToNormalizedEdge(shifted, 0), 1);
+  assert.equal(normalizedToRawEdge(shifted, 1), 0);
+  for (let index = 0; index < shifted.length; index += 1) {
+    assert.equal(
+      normalizedToRawEdge(shifted, rawToNormalizedEdge(shifted, index)),
+      index
+    );
+  }
+
+  const clockwise = [
+    [0, 0],
+    [0, 9],
+    [12, 9],
+    [12, 0]
+  ];
+  assert.equal(rawToNormalizedEdge(clockwise, 0), 3);
+  assert.equal(rawToNormalizedEdge(clockwise, 1), 2);
+  assert.equal(normalizedToRawEdge(clockwise, 0), 3);
+  assert.equal(normalizedToRawEdge(clockwise, 2), 1);
+  for (let index = 0; index < clockwise.length; index += 1) {
+    assert.equal(
+      normalizedToRawEdge(clockwise, rawToNormalizedEdge(clockwise, index)),
+      index
+    );
+  }
+});
+
+test('keeps the editor starter spec valid and buildable', () => {
+  const model = createHouseModel(STARTER_HOUSE);
+
+  assert.equal(validateModel(model).ok, true);
+  assert.equal(model.floors.length, 2);
+  assert.equal(model.floors[0].edges.length, 6);
+  assert.equal(model.openings.length, 6);
+
+  const built = buildVilla(model);
+  assert.equal(built.stats.walls, 12);
+  assert.equal(built.stats.openings, 6);
+  assert.equal(built.stats.slabs, 3);
+});
+
+test('builds all five documented house samples without overlap', () => {
+  assert.equal(HOUSE_SAMPLES.length, 5);
+  assert.equal(SAMPLE_HOUSES_BY_KEY.size, 5);
+
+  for (const sample of HOUSE_SAMPLES) {
+    assert.ok(sample.key, 'sample key is required');
+    assert.ok(sample.label, `${sample.key} needs a picker label`);
+    assert.ok(sample.spec?.name, `${sample.key} needs a spec name`);
+    assert.equal(SAMPLE_HOUSES_BY_KEY.get(sample.key), sample);
+
+    const model = createHouseModel(sample.spec);
+    assert.equal(validateModel(model).ok, true);
+    assert.equal(
+      model.floors.length * model.floors[0].edges.length,
+      buildVilla(model).stats.walls
+    );
+
+    const floors = new Map(model.floors.map((floor) => [floor.key, floor]));
+    const walls = new Map();
+    for (const opening of model.openings) {
+      const floor = floors.get(opening.floor);
+      assert.ok(floor, `${opening.name} has a storey`);
+      assert.ok(
+        opening.sill + opening.h <= floor.h + 1e-6,
+        `${opening.name} rises above ${opening.floor}`
+      );
+      const key = `${opening.floor}:${opening.edge}`;
+      if (!walls.has(key)) walls.set(key, []);
+      walls.get(key).push([opening.s0, opening.s1]);
+    }
+
+    for (const intervals of walls.values()) {
+      intervals.sort((a, b) => a[0] - b[0]);
+      for (let index = 1; index < intervals.length; index += 1) {
+        assert.ok(
+          intervals[index][0] >= intervals[index - 1][1] - 1e-6,
+          `${sample.key} has overlapping openings`
+        );
+      }
+    }
+
+    const built = buildVilla(model);
+    assert.equal(built.stats.openings, model.openings.length);
+    assert.ok(built.stats.slabs >= model.floors.length);
+  }
+
+  assert.ok(HOUSE_SAMPLES.some(({ spec }) => spec.storeys.length >= 3));
+  assert.ok(HOUSE_SAMPLES.some(({ spec }) => (spec.balconies ?? []).length > 0));
 });
 
 test('loads the worked Mediterranean courtyard villa', () => {

@@ -35,8 +35,10 @@
           <h1 id="villa-title">Parti Pris Villa Builder</h1>
           <p class="house-name" id="house-name">Reference villa</p>
           <p class="lede">
-            Load a house spec, or start from the reference villa. Every opening
-            is built from the M3 window component.
+            Pick a documented house sample, edit the outline, storeys and
+            openings in the form, or load a house spec. Open Materials to
+            change the stone, frames, roof and sun without rebuilding the
+            house.
           </p>
           <dl class="stats">
             <div>
@@ -53,6 +55,12 @@
             </div>
           </dl>
           <p class="status" id="status" role="status">Loading model…</p>
+          <label class="sample-picker" for="house-sample">
+            <span>Real house samples</span>
+            <select id="house-sample" title="Simplified specs from published dimensions">
+              <option value="" disabled selected>Choose a house…</option>
+            </select>
+          </label>
           <div class="hud-actions">
             <label class="file-button" for="house-file">Load house JSON</label>
             <input
@@ -61,20 +69,223 @@
               accept=".json,application/json"
               hidden
             />
+            <button
+              class="editor-button"
+              id="open-editor"
+              type="button"
+              aria-expanded="false"
+              aria-controls="editor"
+            >
+              Edit house
+            </button>
             <button class="ghost-button" id="load-example" type="button">
               Example villa
             </button>
             <button class="ghost-button" id="load-reference" type="button">
               Reference
             </button>
+            <button
+              class="studio-button"
+              id="open-studio"
+              type="button"
+              aria-expanded="false"
+              aria-controls="studio"
+            >
+              Materials
+            </button>
           </div>
         </section>
+
+        <aside class="studio" id="studio" hidden aria-labelledby="studio-title">
+          <header class="studio-head">
+            <div>
+              <p class="eyebrow">Material studio</p>
+              <h2 id="studio-title">Stone, sun and view</h2>
+            </div>
+            <button class="studio-close" id="close-studio" type="button">
+              Close
+            </button>
+          </header>
+
+          <div class="studio-scroll">
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>Look</h3>
+                <span>One-click finish</span>
+              </div>
+              <div class="chip-row" id="look-options"></div>
+            </section>
+
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>Stone finish</h3>
+                <span id="finish-name">Msamsam</span>
+              </div>
+              <div class="finish-grid" id="finish-options"></div>
+            </section>
+
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>Stone tone</h3>
+                <span>Lebanese limestone</span>
+              </div>
+              <div class="tone-row" id="tone-options"></div>
+            </section>
+
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>Joints</h3>
+              </div>
+              <div class="chip-row" id="joint-options"></div>
+            </section>
+
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>Window frames</h3>
+              </div>
+              <div class="chip-row" id="frame-options"></div>
+            </section>
+
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>Roof</h3>
+              </div>
+              <div class="chip-row" id="roof-options"></div>
+            </section>
+
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>View</h3>
+                <span>Click to frame</span>
+              </div>
+              <div class="chip-row" id="view-options"></div>
+            </section>
+
+            <section class="studio-group">
+              <div class="studio-label">
+                <h3>Sun</h3>
+              </div>
+              <div class="chip-row" id="light-options"></div>
+            </section>
+
+            <div class="studio-switch">
+              <div>
+                <strong>Auto-orbit</strong>
+                <span>Slow turntable around the house</span>
+              </div>
+              <button
+                class="toggle"
+                id="auto-rotate"
+                type="button"
+                role="switch"
+                aria-label="Auto-orbit"
+                aria-checked="false"
+              >
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <button class="studio-reset" id="reset-view" type="button">
+              Reset view
+            </button>
+
+            <p class="studio-note">
+              Textures are generated locally. Material changes update the
+              existing meshes without rebuilding the house.
+            </p>
+          </div>
+        </aside>
+
+        <aside class="editor" id="editor" hidden aria-labelledby="editor-title">
+          <header class="studio-head">
+            <div>
+              <p class="eyebrow">House spec</p>
+              <h2 id="editor-title">Outline, storeys and openings</h2>
+            </div>
+            <button class="studio-close" id="close-editor" type="button">
+              Close
+            </button>
+          </header>
+
+          <div class="editor-scroll">
+            <p class="editor-context" id="editor-context"></p>
+
+            <section class="editor-group editor-name-group">
+              <label class="editor-field editor-field-wide">
+                <span>House name</span>
+                <input id="editor-name" type="text" autocomplete="off" />
+              </label>
+            </section>
+
+            <section class="editor-group">
+              <div class="editor-group-head">
+                <div>
+                  <h3>Outline</h3>
+                  <p class="editor-sub" id="outline-summary"></p>
+                </div>
+                <div id="add-point-slot"></div>
+              </div>
+              <p class="editor-hint">
+                Points are [x, z] in metres. Edge 1 runs from point 1 to
+                point 2; the last edge closes back to point 1. Openings can
+                only sit on horizontal or vertical edges.
+              </p>
+              <div class="editor-rows" id="outline-rows"></div>
+            </section>
+
+            <section class="editor-group">
+              <div class="editor-group-head">
+                <div>
+                  <h3>Storeys</h3>
+                  <p class="editor-sub">Heights stack from the ground up.</p>
+                </div>
+                <div id="add-storey-slot"></div>
+              </div>
+              <div class="editor-rows" id="storey-rows"></div>
+            </section>
+
+            <section class="editor-group">
+              <div class="editor-group-head">
+                <div>
+                  <h3>Openings</h3>
+                  <p class="editor-sub" id="opening-summary"></p>
+                </div>
+                <div id="add-opening-slot"></div>
+              </div>
+              <p class="editor-hint">
+                Storey and edge choices refer to the lists above. Doors open
+                at floor level; windows use a sill above the floor.
+              </p>
+              <div class="editor-rows" id="opening-rows"></div>
+            </section>
+          </div>
+
+          <footer class="editor-foot">
+            <p
+              class="editor-error"
+              id="editor-error"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <div class="editor-actions">
+              <button class="editor-text" id="reset-editor" type="button">
+                Reset
+              </button>
+              <button class="editor-text" id="cancel-editor" type="button">
+                Cancel
+              </button>
+              <button class="editor-apply" id="apply-editor" type="button">
+                Apply &amp; rebuild
+              </button>
+            </div>
+          </footer>
+        </aside>
 
         <p class="hint">
           Drag to orbit <span>·</span> scroll to zoom <span>·</span> right-drag
           to pan
         </p>
-        <p class="stamp">M3 · villa builder</p>
+        <p class="stamp">M6 · real house samples</p>
       </main>
     </div>
     <script type="module" src="/src/main.js"></script>

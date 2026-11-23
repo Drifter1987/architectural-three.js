@@ -35,6 +35,9 @@ non-negotiable — see [`docs/decisions/0001-single-file.md`](docs/decisions/000
 | M1 wall graph | v2 validator + 74-wall / 57-opening reference round-trip |
 | M2 DXF import | LINE / straight LWPOLYLINE walls + explicit sidecar openings |
 | M3 villa builder + viewer | 32-part window, 5 surrounds, 4 glazing patterns; JSON house loader; windows batched per material (227 draw calls) |
+| M4 materials + studio | Procedural limestone (8 finishes × 5 tones × 3 joints), frame and roof sets, 4 look presets, camera and sun presets, auto-orbit; textured scene at 231 draw calls / 1.99 ms per frame |
+| M5 house editor | Form-based outline, storey and opening edits with live validation; overlapping or over-height openings are rejected; reference remains the read-only default and the JSON loader is retained |
+| M6 real-house samples | Five documented houses converted to house specs and loaded from the HUD: Farnsworth, Glass House, Eames House, Villa Savoye and Rietveld Schröder House |
 
 ## The reference at a glance
 
@@ -88,8 +91,13 @@ app/
   src/model/dxf.js           DXF walls + explicit opening attachment
   src/model/house.js         outline + storeys + openings → v2 model
   src/model/example-house.js 20-opening Mediterranean courtyard example
+  src/model/starter-house.js  valid starter spec for the in-app editor
+  src/model/houses/           five documented real-house specs + picker index
+  src/ui/house-editor.js     outline/storey/opening form + edge-order mapping
   src/components/window.js   5 surrounds, 4 glazing patterns, shutters/grille
   src/scene/batch.js         per-material merge for the 32-part windows
+  src/scene/materials.js     procedural limestone, trim, roof, slab and ground maps
+  src/scene/viewer.js        orbit, camera presets, sun presets, auto-orbit
   src/                       shell UI + styles
 vite.config.js               Vite 8 + vite-plugin-singlefile
 scripts/check-build.mjs      one-file / no-external-assets build gate

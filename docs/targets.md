@@ -101,3 +101,19 @@ measured change is 16.3× fewer draw calls and 11.6× lower frame time. The
 "effective render rate" is `1000 / msPerFrame` from the uncapped render loop,
 not a vsync-capped display rate. The app uses batching by default;
 `?batch=0` selects the unbatched path for comparison.
+
+## 8. Measured — M4 material studio
+
+Reference villa, 60 openings, 1440 × 900, local Chromium, 120 frames after a
+warm-up frame and a `readPixels` sync. Procedural stone, trim, roof, slab and
+ground maps are active; the main and stair roofs each use a tiled top material
+and a plain side material.
+
+| Case | Draw calls | Frame time | Effective render rate |
+| --- | --- | --- | --- |
+| Textured materials, batched windows, split roofs | 231 | 1.99 ms | 502.9 fps |
+
+The textured case stays within the 250-call budget and renders 41,662
+triangles. Changing finish, tone, joint, frame or roof swaps maps/colours on
+the existing material objects: the geometry and draw-call count are reused, and
+the viewer is invalidated without rebuilding the villa.

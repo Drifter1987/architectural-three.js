@@ -18,6 +18,19 @@ pick a `.json` file containing the spec. **Example villa** loads the worked
 example in `app/src/model/example-house.js`; **Reference** returns to the
 built-in villa.
 
+The **Edit house** studio builds the same spec without JSON. It edits the house
+name, outline points, storey keys/names/heights, and openings (storey, edge,
+type, offset, width, height, sill and name). Apply runs the same
+`createHouseModel` validation before rebuilding, so an invalid outline or
+opening does not replace the current house. The editor also rejects overlapping
+openings and openings that rise above their storey.
+
+The reference villa is a canonical, read-only fixture, so it is not converted
+into an editable outline. Opening **Edit house** while the reference is shown
+starts from the last generated spec in memory, or from
+`app/src/model/starter-house.js` on a fresh session. Loading the reference or a
+JSON file leaves the existing loader path untouched.
+
 ## Exact shape
 
 ```js
@@ -131,6 +144,25 @@ This is a valid one-storey, two-opening house:
 ```
 
 Save that object as `house.json` and use **Load house JSON**.
+
+## Real-house samples
+
+The HUD's **Real house samples** menu loads five documented houses, each in
+`app/src/model/houses/`:
+
+| Sample | Envelope | Levels | Dimensions and source |
+| --- | --- | --- | --- |
+| Farnsworth House | 17.0 × 8.9 m | 1, raised 1.6 m | [HABS IL-1105](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0300/il0323/data/il0323data.pdf) and [Columbia](http://www.columbia.edu/cu/gsapp/BT/GATEWAY/FARNSWTH/gen.html) |
+| Glass House | 16.8 × 10.1 m | 1 | [National Park Service](https://npgallery.nps.gov/NRHP/GetAsset/NHLS/97000341_text) and [The Glass House](https://theglasshouse.org/explore/the-glass-house/overview) |
+| Eames House | 18.0 × 6.35 m | 2 | [HABS CA-2903](https://tile.loc.gov/storage-services/master/pnp/habshaer/ca/ca4100/ca4169/data/ca4169data.pdf) |
+| Villa Savoye | 21.5 × 19.0 m | 3 | [Villa Savoye dimensions](https://fr.wikipedia.org/wiki/Villa_Savoye) |
+| Rietveld Schröder House | 9.0 × 7.0 m | 2 | [UNESCO nomination](https://whc.unesco.org/document/154710) |
+
+The files use the published overall dimensions and storey counts, but the
+facade layouts are original interpretations of the glazing rhythm—not copies
+of the measured drawings. Each file records its sources and the
+`HOUSE_SAMPLES` index in `app/src/model/houses/index.js` supplies the HUD
+labels.
 
 ## Worked example used in the app
 
