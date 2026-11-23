@@ -1,64 +1,65 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark">
-  <meta name="description" content="Phase 4 shell for architectural-three.js: one-file build, schema validator, no villa features.">
-  <title>architectural-three.js — shell</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307110d'/%3E%3Cpath d='M7 25 16 6l9 19' fill='none' stroke='%238ce3b8' stroke-width='2'/%3E%3C/svg%3E">
-</head>
-<body>
-  <div class="wrap">
-    <header class="topbar">
-      <span class="mark" aria-hidden="true">AT</span>
-      <span class="name">architectural-three.js</span>
-      <span class="pill">phase 4 · shell</span>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101612" />
+    <title>Parti Pris — Villa Abdo</title>
+    <meta
+      name="description"
+      content="An interactive single-file rebuild of the Parti Pris villa model."
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>Parti Pris</span>
+        </div>
+        <div class="topbar-meta">
+          <span class="pill">model v2</span>
+          <span class="meta-separator" aria-hidden="true"></span>
+          <span>single file · no network</span>
+        </div>
+      </header>
 
-    <main>
-      <p class="eyebrow">Foundation / single-file build</p>
-      <h1>One file.<br><em>No villa yet.</em></h1>
-      <p class="lede">
-        This is the application shell only: a Vite entry point, the canonical
-        wall-graph validator, and the build gate that refuses anything but one
-        self-contained HTML file.
-      </p>
+      <main class="stage" id="stage">
+        <div class="loading" id="loading">
+          <span class="loading-line" aria-hidden="true"></span>
+          <span>Building the house…</span>
+        </div>
 
-      <section class="grid" aria-label="Shell status">
-        <article class="card">
-          <span class="kicker">Build contract</span>
-          <h2>Single HTML output</h2>
-          <p>
-            Vite and <code>vite-plugin-singlefile</code> inline the CSS and
-            JavaScript. <code>npm run build</code> fails if <code>dist/</code>
-            contains anything except one HTML file or if that file references an
-            external asset.
+        <section class="hud" aria-labelledby="villa-title">
+          <p class="eyebrow">Reference model / rebuild</p>
+          <h1 id="villa-title">Villa Abdo</h1>
+          <p class="lede">
+            Three floors cut from the canonical wall graph.
           </p>
-          <span class="status ok">enforced by the build check</span>
-        </article>
+          <dl class="stats">
+            <div>
+              <dt>Floors</dt>
+              <dd data-stat="floors">—</dd>
+            </div>
+            <div>
+              <dt>Walls</dt>
+              <dd data-stat="walls">—</dd>
+            </div>
+            <div>
+              <dt>Openings</dt>
+              <dd data-stat="openings">—</dd>
+            </div>
+          </dl>
+          <p class="status" id="status" role="status" aria-live="polite">
+            Loading model…
+          </p>
+        </section>
 
-        <article class="card">
-          <span class="kicker">Schema v2</span>
-          <h2>Wall-graph validator</h2>
-          <p id="schema-detail">Running the validator on the shell fixture…</p>
-          <span id="schema-status" class="status" role="status" aria-live="polite">checking…</span>
-        </article>
-      </section>
+        <p class="hint">Drag to orbit <span aria-hidden="true">·</span> Scroll to zoom</p>
+        <p class="stamp">M3 · villa builder</p>
+      </main>
+    </div>
 
-      <p class="note">
-        No walls are drawn, no stone is generated, and no price is calculated
-        here. The next phase may load a model only after this shell and its
-        validator are accepted.
-      </p>
-    </main>
-
-    <footer>
-      <span>Phase 4 · shell + schema validator</span>
-      <span>No external assets</span>
-    </footer>
-  </div>
-
-  <script type="module" src="/src/main.js"></script>
-</body>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

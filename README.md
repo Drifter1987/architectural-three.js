@@ -14,7 +14,9 @@ rebuilds the techniques in original code.
 JavaScript, Three.js and the model data are inlined; there is no runtime CDN, no
 runtime network request of any kind (including web fonts), no separate
 JS/CSS/image asset, and no server-side code. Inline media uses `data:` URLs;
-`srcset` is rejected. Authoring can use Vite +
+`srcset` is rejected. The gate also scans inline JavaScript for runtime network
+APIs (`fetch`, XHR, WebSocket, EventSource, Workers, font loading, dynamic
+imports). Authoring can use Vite +
 `vite-plugin-singlefile`, but the release artefact stays one file. This is
 non-negotiable — see [`docs/decisions/0001-single-file.md`](docs/decisions/0001-single-file.md).
 
@@ -32,6 +34,7 @@ non-negotiable — see [`docs/decisions/0001-single-file.md`](docs/decisions/000
 | Phase 4 app shell | Vite 8 + singlefile scaffold, schema validator, build gate |
 | M1 wall graph | v2 validator + 74-wall / 57-opening reference round-trip |
 | M2 DXF import | LINE / straight LWPOLYLINE walls + explicit sidecar openings |
+| M3 villa builder + viewer | 32-part window, 5 surrounds, 4 glazing patterns; outline → house model |
 
 ## The reference at a glance
 
@@ -83,7 +86,8 @@ app/
   src/schema.js              canonical v2 wall-graph validator
   src/model/import.js        legacy reference → v2 round-trip
   src/model/dxf.js           DXF walls + explicit opening attachment
-  src/components/            empty component-library boundary
+  src/model/house.js         outline + storeys + openings → v2 model
+  src/components/window.js   5 surrounds, 4 glazing patterns, shutters/grille
   src/                       shell UI + styles
 vite.config.js               Vite 8 + vite-plugin-singlefile
 scripts/check-build.mjs      one-file / no-external-assets build gate

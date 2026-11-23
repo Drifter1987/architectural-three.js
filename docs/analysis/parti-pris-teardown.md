@@ -371,28 +371,6 @@ looking at screenshots.
 | M8 | Cost | 37 items derived from geometry, reconciled to a workbook |
 
 ---
-
-## 12. Gap matrix — reference vs `villa_abdo`
-
-| Dimension | `villa_abdo/villa-studio.html` | Reference |
-| --- | --- | --- |
-| Building source | footprint polygon + presets | authored 74-wall graph with room names |
-| Openings | one `buildOpening`, 4 types, rhythm-distributed | 57 placed records, 53 conditional placements each |
-| Walls | quad segmentation around openings | `ShapeGeometry` with real holes, continuous UVs |
-| Stone | canvas albedo + bump (`drawStone`, `macroize`) | height→normal→albedo GPU chain, per-block atlas |
-| Corners / bands / sills | limited | 6 corner models, bands, strips, corbels |
-| Render | standard lights + shadow map | AO accumulation + camera/sun jitter + bloom/grade |
-| Site | generic terrain + garden | plateaus authored to the villa's levels + roads |
-| Performance | rebuilds building **and site** every dirty frame | batched build on change; cheap interactive frame |
-| Cost | stone-only estimate, 8 items-ish | 37 items, decor-coupled, workbook-reconciled |
-| Tests | 8 CAD-parser tests | none in the file (its own risk) |
-| Size | 9,104 lines / 1.1 MB | 4,064 lines / 0.96 MB |
-
-Fairness note: `villa_abdo` has an importer and a test suite; the reference has
-neither. The reference wins on fidelity, not on engineering hygiene.
-
----
-
 ## Appendix — line index
 
 | Line | Symbol |

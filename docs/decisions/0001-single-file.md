@@ -29,7 +29,9 @@ server. Those are fine for development but must not change what ships.
 5. Build output must stay under **1.2 MB** and load with zero 404s.
    `scripts/check-build.mjs` enforces this after every `npm run build`: it fails
    on a second file, a subdirectory, an external `src`/`href`, a `srcset`, a
-   CSS `url()`, an `@import`, a source map, or output over the size budget.
+   CSS `url()`, an `@import`, a source map, an inline script using `fetch`,
+   `XMLHttpRequest`, `WebSocket`, `EventSource`, Workers, `FontFace`/
+   `document.fonts`, or dynamic `import()`, or output over the size budget.
 
 ## Consequences
 

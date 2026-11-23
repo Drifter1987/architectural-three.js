@@ -1,6 +1,6 @@
 # ADR 0002 — Render architecture for the rebuild
 
-- Status: accepted (Phase 4 shell and schema validator started)
+- Status: accepted (M3 villa builder and viewer implemented)
 - Date: 2026-11-23
 
 ## Context
@@ -14,9 +14,9 @@ The reference gets its realism from four things, in order of impact:
 3. a physical stone material generated on the GPU;
 4. a progressive AO still pipeline.
 
-The existing `villa_abdo` app generates a footprint and distributes windows by
-rhythm. No amount of material work rescues that: the details are in the wrong
-places because the model does not know where the rooms are.
+A footprint generator that distributes windows by rhythm cannot reach the
+target: no amount of material work rescues it, because the details are in the
+wrong places when the model does not know where the rooms are.
 
 ## Decision
 
@@ -101,7 +101,8 @@ the rebuild cannot load it, parity has failed.
 
 ## Consequences
 
-- The generic footprint generator in `villa_abdo` is **not** ported.
+- No generic footprint generator is ported: every wall and opening comes from
+  the wall graph.
 - Existing CAD parsers can be reused as an importer, but their output must be
   converted to the wall-graph schema, not to a single footprint.
 - The estimate is rebuilt on the same model; money math gets tests.

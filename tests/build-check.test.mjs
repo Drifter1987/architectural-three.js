@@ -139,6 +139,48 @@ test('rejects a data-URI srcset outright instead of splitting at its comma', () 
   });
 });
 
+test('rejects runtime network APIs in executable inline JavaScript', () => {
+  const html = VALID_HTML.replace(
+    "<script type=\"module\">document.documentElement.dataset.ready = 'true';</script>",
+    `<script type="module">
+      fetch('https://api.example/data');
+      new XMLHttpRequest();
+      new WebSocket('wss://example/socket');
+      new FontFace('stone', 'url(https://fonts.example/stone.woff2)');
+    </script>`
+  );
+  withDist({ 'index.html': html }, (result) => {
+    assert.equal(result.ok, false);
+    for (const label of ['fetch()', 'XMLHttpRequest', 'WebSocket', 'FontFace']) {
+      assert.ok(
+        result.errors.some((error) => error.includes(label)),
+        `expected the gate to flag ${label}`
+      );
+    }
+  });
+});
+
+test('ignores network-looking text in inline JSON data islands', () => {
+  const html = VALID_HTML.replace(
+    '</body>',
+    '<script type="application/json">{"note":"fetch( is data, not code"}</script></body>'
+  );
+  withDist({ 'index.html': html }, (result) => {
+    assert.equal(result.ok, true, result.errors.join('\n'));
+  });
+});
+
+test('rejects an external @font-face source', () => {
+  const html = VALID_HTML.replace(
+    'color-scheme: dark;',
+    'color-scheme: dark; @font-face { font-family: stone; src: url(https://fonts.example/stone.woff2); }'
+  );
+  withDist({ 'index.html': html }, (result) => {
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.some((error) => error.includes('CSS url()')));
+  });
+});
+
 test('accepts a single data: image source', () => {
   const html = VALID_HTML.replace(
     '<main>shell</main>',

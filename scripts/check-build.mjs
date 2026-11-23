@@ -14,6 +14,19 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_BYTES = 1_200_000;
 
+const NETWORK_APIS = [
+  [/\bfetch\s*\(/, 'fetch()'],
+  [/\bXMLHttpRequest\b/, 'XMLHttpRequest'],
+  [/\bWebSocket\b/, 'WebSocket'],
+  [/\bEventSource\b/, 'EventSource'],
+  [/\bnavigator\s*\.\s*sendBeacon\s*\(/, 'navigator.sendBeacon()'],
+  [/\bimportScripts\s*\(/, 'importScripts()'],
+  [/\bnew\s+(?:Shared)?Worker\s*\(/, 'Worker'],
+  [/\bnew\s+FontFace\s*\(/, 'FontFace'],
+  [/\bdocument\s*\.\s*fonts\b/, 'document.fonts'],
+  [/\bimport\s*\(/, 'dynamic import()']
+];
+
 function listFiles(dir) {
   const files = [];
   const directories = [];
@@ -150,6 +163,31 @@ export function checkBuild(distDir = path.join(ROOT, 'dist')) {
     .filter(Boolean);
   for (const src of scriptSrc) {
     errors.push(`external script reference: ${src}`);
+  }
+
+  // Scan executable scripts only. JSON data islands may contain the word
+  // "fetch" as data without making a network call.
+  const executableScripts = scriptTags.filter((tag) => {
+    const opening = tag.slice(0, tag.indexOf('>') + 1);
+    if (attr(opening, 'src')) return false;
+    const type = (attr(opening, 'type') || '').toLowerCase();
+    return (
+      type === '' ||
+      type === 'module' ||
+      type === 'text/javascript' ||
+      type === 'application/javascript'
+    );
+  });
+
+  const networkApis = new Set();
+  for (const tag of executableScripts) {
+    const body = tag.slice(tag.indexOf('>') + 1).replace(/<\/script>\s*$/i, '');
+    for (const [pattern, label] of NETWORK_APIS) {
+      if (pattern.test(body)) networkApis.add(label);
+    }
+  }
+  for (const label of networkApis) {
+    errors.push(`inline script uses network API: ${label}`);
   }
 
   for (const tag of html.matchAll(/<link\b[^>]*>/gi)) {

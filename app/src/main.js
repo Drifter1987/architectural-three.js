@@ -1,65 +1,58 @@
 import './styles.css';
-import { MODEL_SCHEMA_VERSION, validateModel } from './schema.js';
 
-const fixture = {
-  version: MODEL_SCHEMA_VERSION,
-  name: 'Phase 4 shell fixture',
-  floors: [
-    {
-      key: 'L0',
-      name: 'Shell storey',
-      z0: 0,
-      h: 3.2,
-      edges: [
-        {
-          a: [0, 0],
-          b: [4, 0],
-          kind: 'stone',
-          name: 'Shell wall',
-          openings: [0]
-        }
-      ]
-    }
-  ],
-  openings: [
-    {
-      floor: 'L0',
-      edge: 0,
-      axis: 'y',
-      face: 0,
-      out: 1,
-      s0: 1,
-      s1: 2.2,
-      sill: 0.9,
-      kind: 'W',
-      w: 1.2,
-      h: 1.5,
-      name: 'Shell opening'
-    }
-  ],
-  balconies: [],
-  steps: [],
-  planters: [],
-  columns: [],
-  check: []
-};
+import referenceModel from './model/reference-model.json';
+import { importReferenceModel } from './model/import.js';
+import { validateModel } from './schema.js';
+import { buildVilla } from './scene/villa.js';
+import { createViewer } from './scene/viewer.js';
 
-const result = validateModel(fixture);
-const status = document.querySelector('#schema-status');
-const detail = document.querySelector('#schema-detail');
+const stage = document.querySelector('#stage');
+const loading = document.querySelector('#loading');
+const status = document.querySelector('#status');
 
-if (result.ok) {
-  status.textContent = `schema v${result.version} ok`;
-  status.classList.add('ok');
-  detail.textContent =
-    `${result.summary.walls} wall and ${result.summary.openings} opening validated before geometry.`;
-} else {
-  status.textContent = 'validator failed';
-  status.classList.add('bad');
-  detail.textContent = result.errors
-    .map((error) => `${error.path}: ${error.message}`)
-    .join(' · ');
+function setStat(name, value) {
+  const node = document.querySelector(`[data-stat="${name}"]`);
+  if (node) node.textContent = String(value);
 }
 
-document.documentElement.dataset.phase = '4';
-document.documentElement.dataset.schema = result.ok ? 'ok' : 'failed';
+function fail(message) {
+  loading?.remove();
+  if (status) {
+    status.textContent = message;
+    status.classList.add('is-error');
+  }
+  console.error(message);
+}
+
+let disposeViewer = null;
+
+try {
+  const model = importReferenceModel(referenceModel);
+  const validation = validateModel(model);
+  if (!validation.ok) {
+    throw new Error(
+      `Reference model is invalid: ${validation.errors[0]?.path} ${validation.errors[0]?.message}`
+    );
+  }
+
+  const { group, stats } = buildVilla(model);
+  disposeViewer = createViewer(stage, group);
+  loading?.remove();
+
+  setStat('floors', validation.summary.floors);
+  setStat('walls', validation.summary.walls);
+  setStat('openings', validation.summary.openings);
+  if (status) {
+    status.textContent = `Rendered · ${stats.openings} openings · ${stats.slabs} slabs`;
+    status.classList.add('is-ready');
+  }
+} catch (error) {
+  fail(error instanceof Error ? error.message : String(error));
+}
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    disposeViewer?.();
+    disposeViewer = null;
+  });
+}
