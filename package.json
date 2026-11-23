@@ -13,8 +13,9 @@
     "build": "vite build && node scripts/check-build.mjs",
     "check:build": "node scripts/check-build.mjs",
     "serve": "node scripts/serve.mjs",
-    "test": "node --test tests/reference-integrity.test.mjs tests/reference-model.test.mjs tests/schema.test.mjs tests/build-check.test.mjs",
+    "test": "node --test tests/reference-integrity.test.mjs tests/reference-model.test.mjs tests/schema.test.mjs tests/model-import.test.mjs tests/dxf-import.test.mjs tests/build-check.test.mjs",
     "verify:reference": "node tests/verify-reference.mjs",
+    "verify:model": "node scripts/verify-model.mjs",
     "labs": "node labs/run-all.mjs"
   },
   "devDependencies": {

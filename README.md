@@ -28,6 +28,8 @@ non-negotiable — see [`docs/decisions/0001-single-file.md`](docs/decisions/000
 | Deep teardown | `docs/analysis/parti-pris-teardown.md` |
 | Targets + render architecture | `docs/targets.md`, `docs/decisions/` |
 | Phase 4 app shell | Vite 8 + singlefile scaffold, schema validator, build gate |
+| M1 wall graph | v2 validator + 74-wall / 57-opening reference round-trip |
+| M2 DXF import | LINE / straight LWPOLYLINE walls + explicit sidecar openings |
 
 ## The reference at a glance
 
@@ -63,8 +65,9 @@ npm run serve
 framework. `PORT=9000 npm run serve` changes the port.
 
 ```bash
-npm test               # reference, schema and build-gate assertions
+npm test               # reference, schema, import and build-gate assertions
 npm run verify:reference
+npm run verify:model   # reference model → v2 → round-trip
 npm run labs           # three.js labs 1–3 (needs `npm install` once)
 npm run dev            # shell at http://127.0.0.1:5173
 npm run build          # dist/index.html; fails unless exactly one self-contained file
@@ -75,7 +78,11 @@ npm run build          # dist/index.html; fails unless exactly one self-containe
 ```
 app/
   index.html                 Phase 4 shell entry
-  src/                       shell UI + canonical wall-graph validator
+  src/schema.js              canonical v2 wall-graph validator
+  src/model/import.js        legacy reference → v2 round-trip
+  src/model/dxf.js           DXF walls + explicit opening attachment
+  src/components/            empty component-library boundary
+  src/                       shell UI + styles
 vite.config.js               Vite 8 + vite-plugin-singlefile
 scripts/check-build.mjs      one-file / no-external-assets build gate
 reference/

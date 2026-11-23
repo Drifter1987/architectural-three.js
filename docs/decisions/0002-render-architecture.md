@@ -44,7 +44,7 @@ Rules:
 - Every wall carries its room/façade name.
 - Every opening is placed on an edge by `axis/face/s0/s1`; no rhythm rule.
 - Areas are derived, never stored as truth; `check` stores reconciliation only.
-- A schema validator runs before any geometry is built. The version 2 validator lives in `app/src/schema.js`; the reference `model-data` is accepted as a legacy v1 fixture via `allowLegacy`.
+- A schema validator runs before any geometry is built. The version 2 validator lives in `app/src/schema.js`; the reference `model-data` is accepted as a legacy v1 fixture via `allowLegacy` and imported into v2 in `app/src/model/import.js`. Round-trip acceptance is `npm run verify:model`.
 
 ### 2. Component library
 
@@ -92,9 +92,12 @@ continuity and the reveal shadow.
 
 ### 7. Import
 
-The first importer reads DXF walls and maps them to edges; unsupported formats
-are explicit errors, not silent fallbacks. The reference `model-data` is the
-first fixture: if the rebuild cannot load it, parity has failed.
+The importer in `app/src/model/dxf.js` reads DXF `LINE` and straight
+`LWPOLYLINE` entities and maps them to named edges. Curved bulges and unknown
+formats are explicit errors, not silent approximations. Openings are attached
+only from an explicit sidecar array with floor, edge and `s0`/`s1` offsets —
+never inferred by rhythm. The reference `model-data` is the first fixture: if
+the rebuild cannot load it, parity has failed.
 
 ## Consequences
 
