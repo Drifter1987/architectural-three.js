@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101612" />
-    <title>Parti Pris — Villa Abdo</title>
+    <title>Parti Pris Villa Builder</title>
     <meta
       name="description"
-      content="An interactive single-file rebuild of the Parti Pris villa model."
+      content="A single-file architectural villa builder driven by an outline, storey heights and placed openings."
     />
   </head>
   <body>
@@ -15,7 +15,7 @@
       <header class="topbar">
         <div class="brand">
           <span class="brand-mark" aria-hidden="true"></span>
-          <span>Parti Pris</span>
+          <span>Parti Pris Villa Builder</span>
         </div>
         <div class="topbar-meta">
           <span class="pill">model v2</span>
@@ -31,14 +31,16 @@
         </div>
 
         <section class="hud" aria-labelledby="villa-title">
-          <p class="eyebrow">Reference model / rebuild</p>
-          <h1 id="villa-title">Villa Abdo</h1>
+          <p class="eyebrow">Outline · storeys · openings</p>
+          <h1 id="villa-title">Parti Pris Villa Builder</h1>
+          <p class="house-name" id="house-name">Reference villa</p>
           <p class="lede">
-            Three floors cut from the canonical wall graph.
+            Load a house spec, or start from the reference villa. Every opening
+            is built from the M3 window component.
           </p>
           <dl class="stats">
             <div>
-              <dt>Floors</dt>
+              <dt>Storeys</dt>
               <dd data-stat="floors">—</dd>
             </div>
             <div>
@@ -50,16 +52,31 @@
               <dd data-stat="openings">—</dd>
             </div>
           </dl>
-          <p class="status" id="status" role="status" aria-live="polite">
-            Loading model…
-          </p>
+          <p class="status" id="status" role="status">Loading model…</p>
+          <div class="hud-actions">
+            <label class="file-button" for="house-file">Load house JSON</label>
+            <input
+              id="house-file"
+              type="file"
+              accept=".json,application/json"
+              hidden
+            />
+            <button class="ghost-button" id="load-example" type="button">
+              Example villa
+            </button>
+            <button class="ghost-button" id="load-reference" type="button">
+              Reference
+            </button>
+          </div>
         </section>
 
-        <p class="hint">Drag to orbit <span aria-hidden="true">·</span> Scroll to zoom</p>
+        <p class="hint">
+          Drag to orbit <span>·</span> scroll to zoom <span>·</span> right-drag
+          to pan
+        </p>
         <p class="stamp">M3 · villa builder</p>
       </main>
     </div>
-
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

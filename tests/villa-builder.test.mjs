@@ -262,6 +262,46 @@ test('builds all eight balconies with their parapet runs', () => {
   assert.equal(group.getObjectByName('balcony:0:slab'), undefined);
 });
 
+test('batches every window part into one mesh per material on request', () => {
+  const batched = buildVilla(model, { batchOpenings: true });
+
+  assert.equal(batched.stats.openings, 60);
+  assert.equal(batched.windowGroups.length, 60);
+  assert.equal(batched.windowBatches, 5);
+  assert.equal(batched.group.getObjectByName('opening:0'), undefined);
+
+  const batch = batched.group.getObjectByName('window-batch');
+  assert.ok(batch, 'missing merged window batch');
+  assert.equal(batch.children.length, 5);
+  assert.equal(new Set(batch.children.map((mesh) => mesh.material)).size, 5);
+  assert.ok(batch.children.every((mesh) => mesh.isMesh));
+
+  const sourceBox = new Box3();
+  let sourceVertices = 0;
+  for (const windowGroup of batched.windowGroups) {
+    sourceBox.expandByObject(windowGroup);
+    windowGroup.traverse((object) => {
+      if (object.isMesh) {
+        sourceVertices += object.geometry.attributes.position.count;
+      }
+    });
+  }
+
+  const mergedBox = new Box3().setFromObject(batch);
+  near(mergedBox.min.x, sourceBox.min.x, 1e-3);
+  near(mergedBox.min.y, sourceBox.min.y, 1e-3);
+  near(mergedBox.min.z, sourceBox.min.z, 1e-3);
+  near(mergedBox.max.x, sourceBox.max.x, 1e-3);
+  near(mergedBox.max.y, sourceBox.max.y, 1e-3);
+  near(mergedBox.max.z, sourceBox.max.z, 1e-3);
+
+  const mergedVertices = batch.children.reduce(
+    (total, mesh) => total + mesh.geometry.attributes.position.count,
+    0
+  );
+  assert.equal(mergedVertices, sourceVertices);
+});
+
 test('builds the stair room shell with two windows and its roof door', () => {
   const walls = named('stair:wall:');
   assert.equal(walls.length, 4);

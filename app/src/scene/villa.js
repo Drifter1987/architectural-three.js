@@ -13,6 +13,7 @@ import {
 } from 'three';
 
 import { buildWindow } from '../components/window.js';
+import { batchByMaterial } from './batch.js';
 
 const PARAPET_HEIGHT = 1.05;
 const PARAPET_DEPTH = 0.15;
@@ -323,7 +324,7 @@ function addParapet(group, segment, z, material, name) {
   return mesh;
 }
 
-function addStairRoom(group, model, materials, stats) {
+function addStairRoom(group, model, materials, stats, windowGroups, batchOpenings) {
   const stair = model.stair;
   if (!Array.isArray(stair?.poly) || stair.poly.length < 3) return;
 
@@ -356,7 +357,8 @@ function addStairRoom(group, model, materials, stats) {
         `stair:opening:${index}:${slot}`
       );
       if (!mesh) return;
-      group.add(mesh);
+      windowGroups.push(mesh);
+      if (!batchOpenings) group.add(mesh);
       stats.openings += 1;
     });
   });
@@ -375,11 +377,12 @@ function addStairRoom(group, model, materials, stats) {
   }
 }
 
-export function buildVilla(model) {
+export function buildVilla(model, { batchOpenings = false } = {}) {
   const group = new Group();
   group.name = 'villa';
   const materials = makeMaterials();
   const stats = { walls: 0, openings: 0, slabs: 0, balconies: 0 };
+  const windowGroups = [];
   const floors = new Map((model.floors || []).map((floor) => [floor.key, floor]));
   const openings = model.openings || [];
 
@@ -407,7 +410,8 @@ export function buildVilla(model) {
       `opening:${index}`
     );
     if (!mesh) return;
-    group.add(mesh);
+    windowGroups.push(mesh);
+    if (!batchOpenings) group.add(mesh);
     stats.openings += 1;
   });
 
@@ -469,7 +473,21 @@ export function buildVilla(model) {
     stats.balconies += 1;
   });
 
-  addStairRoom(group, model, materials, stats);
+  addStairRoom(
+    group,
+    model,
+    materials,
+    stats,
+    windowGroups,
+    batchOpenings
+  );
 
-  return { group, materials, stats };
+  let windowBatches = 0;
+  if (batchOpenings && windowGroups.length) {
+    const batch = batchByMaterial(windowGroups);
+    windowBatches = batch.children.length;
+    group.add(batch);
+  }
+
+  return { group, materials, stats, windowGroups, windowBatches };
 }

@@ -27,7 +27,7 @@ A versioned `model` object is the single source of truth:
 ```json
 {
   "version": 2,
-  "name": "Villa Abdo",
+  "name": "Parti Pris Villa Builder",
   "floors": [{ "key": "GF", "z0": 3.1, "h": 3.3,
     "edges": [{ "a": [0,0], "b": [6.898,0], "name": "…",
                 "kind": "stone", "openings": [0,1] }] }],

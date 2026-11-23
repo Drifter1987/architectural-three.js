@@ -113,6 +113,54 @@ export function createViewer(container, group) {
   };
   renderer.setAnimationLoop(render);
 
+  function info() {
+    controls.update();
+    renderer.render(scene, camera);
+    return {
+      calls: renderer.info.render.calls,
+      triangles: renderer.info.render.triangles,
+      geometries: renderer.info.memory.geometries,
+      textures: renderer.info.memory.textures
+    };
+  }
+
+  function benchmark(frames = 60) {
+    const count = Math.max(1, Math.floor(frames));
+    renderer.setAnimationLoop(null);
+    controls.update();
+    renderer.render(scene, camera);
+
+    const gl = renderer.getContext();
+    const pixel = new Uint8Array(4);
+    const sync = () => {
+      try {
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      } catch {
+        // Timing still measures command submission when readback is unavailable.
+      }
+    };
+    sync();
+
+    const start = performance.now();
+    for (let i = 0; i < count; i++) {
+      renderer.render(scene, camera);
+    }
+    sync();
+    const elapsed = performance.now() - start;
+
+    const result = {
+      frames: count,
+      msPerFrame: elapsed / count,
+      fps: (count * 1000) / elapsed,
+      calls: renderer.info.render.calls,
+      triangles: renderer.info.render.triangles
+    };
+
+    dirty = true;
+    renderer.setAnimationLoop(render);
+    return result;
+  }
+
   function dispose() {
     renderer.setAnimationLoop(null);
     observer.disconnect();
@@ -136,5 +184,5 @@ export function createViewer(container, group) {
     renderer.domElement.remove();
   }
 
-  return { dispose };
+  return { dispose, info, benchmark };
 }

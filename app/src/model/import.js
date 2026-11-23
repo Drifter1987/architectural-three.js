@@ -46,7 +46,7 @@ export function importReferenceModel(legacy, options = {}) {
   canonical.name =
     canonical.name ??
     options.name ??
-    'Villa Abdo (reference model)';
+    'Parti Pris Villa Builder (reference model)';
   canonical.units = canonical.units ?? options.units ?? 'm';
 
   return canonical;

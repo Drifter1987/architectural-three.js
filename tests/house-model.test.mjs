@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
+import { EXAMPLE_HOUSE } from '../app/src/model/example-house.js';
 import { createHouseModel } from '../app/src/model/house.js';
 import { validateModel } from '../app/src/schema.js';
 import { buildVilla, wallHoles } from '../app/src/scene/villa.js';
@@ -115,6 +116,26 @@ test('renders the generated house with the same builder as the reference villa',
   assert.ok(door.children.some((child) => child.material === built.materials.iron));
   near(door.position.x, 8.6);
   near(door.position.y, 0);
+});
+
+test('loads the worked Mediterranean courtyard villa', () => {
+  const model = createHouseModel(EXAMPLE_HOUSE);
+
+  assert.equal(validateModel(model).ok, true);
+  assert.equal(model.floors.length, 2);
+  assert.equal(model.floors[0].edges.length, 6);
+  assert.equal(model.openings.length, 20);
+
+  const built = buildVilla(model);
+  assert.equal(built.stats.walls, 12);
+  assert.equal(built.stats.openings, 20);
+  assert.equal(built.stats.slabs, 3);
+
+  const courtyardDoor = model.openings[10];
+  assert.equal(courtyardDoor.kind, 'D');
+  assert.equal(courtyardDoor.edge, 2);
+  assert.equal(courtyardDoor.out, 1);
+  assert.ok(built.group.getObjectByName('opening:10'));
 });
 
 test('normalizes clockwise outlines to the same counter-clockwise ring', () => {

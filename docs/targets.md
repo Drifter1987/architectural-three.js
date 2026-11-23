@@ -83,3 +83,21 @@ protocol is not a fidelity improvement.
 | C — targets | this file accepted; baseline screenshots captured |
 | D — mastery | labs 01–03 pass before app scaffolding |
 | E — architecture | ADR 0002 accepted before app code |
+
+## 7. Measured — M3 32-part windows
+
+Reference villa, 60 openings, 1440 × 900, local Chromium, 60 frames after a
+warm-up frame. `renderer.info.render.calls` includes the shadow pass;
+`performance.now()` brackets the render loop and a `readPixels` sync. Both
+cases submit 41,662 triangles.
+
+| Case | Draw calls | Frame time | Effective render rate |
+| --- | --- | --- | --- |
+| Windows unbatched (32 parts each) | 3,697 | 23.58 ms | 42.4 fps |
+| Windows batched per material (5 meshes) | 227 | 2.03 ms | 492.6 fps |
+
+The unbatched path misses the 250-call budget by 14.8×; batching meets it. The
+measured change is 16.3× fewer draw calls and 11.6× lower frame time. The
+"effective render rate" is `1000 / msPerFrame` from the uncapped render loop,
+not a vsync-capped display rate. The app uses batching by default;
+`?batch=0` selects the unbatched path for comparison.
