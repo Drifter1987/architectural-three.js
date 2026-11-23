@@ -1,0 +1,3 @@
+# Normalise source text, but never touch the reference bytes.
+* text=auto eol=lf
+reference/parti-pris-three.js.html -text

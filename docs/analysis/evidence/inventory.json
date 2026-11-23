@@ -1,0 +1,22 @@
+{
+  "appScriptLines": 2479,
+  "functions": 246,
+  "instancedMesh": 3,
+  "lod": 0,
+  "shaderMaterial": 6,
+  "meshStandard": 2,
+  "meshPhysical": 1,
+  "renderTargets": 5,
+  "extrude": 12,
+  "shapeGeometry": 1,
+  "boxGeometry": 12,
+  "cylinder": 6,
+  "torus": 2,
+  "lathe": 1,
+  "plane": 5,
+  "mergeGeosCalls": 5,
+  "batAddCalls": 3,
+  "openingPartCalls": 53,
+  "openingBx": 42,
+  "openingPut": 11
+}

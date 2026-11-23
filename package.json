@@ -1,0 +1,17 @@
+{
+  "name": "architectural-three",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Study and reimplementation workspace for the Parti Pris architectural Three.js app.",
+  "license": "SEE LICENSE IN LICENSE",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "test": "node --test tests/reference-integrity.test.mjs tests/reference-model.test.mjs",
+    "verify:reference": "node tests/verify-reference.mjs",
+    "labs": "node labs/run-all.mjs"
+  },
+  "devDependencies": {
+    "three": "^0.187.0"
+  }
+}
