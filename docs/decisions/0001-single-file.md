@@ -26,6 +26,9 @@ server. Those are fine for development but must not change what ships.
 4. The reference file remains a separate, frozen artefact. It is never the build
    input and never edited.
 5. Build output must stay under **1.2 MB** and load with zero 404s.
+   `scripts/check-build.mjs` enforces this after every `npm run build`: it fails
+   on a second file, a subdirectory, an external `src`/`href`, a CSS `url()`,
+   an `@import`, a source map, or output over the size budget.
 
 ## Consequences
 

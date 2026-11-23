@@ -1,6 +1,6 @@
 # ADR 0002 — Render architecture for the rebuild
 
-- Status: proposed (accept before Phase 4)
+- Status: accepted (Phase 4 shell and schema validator started)
 - Date: 2026-11-23
 
 ## Context
@@ -44,7 +44,7 @@ Rules:
 - Every wall carries its room/façade name.
 - Every opening is placed on an edge by `axis/face/s0/s1`; no rhythm rule.
 - Areas are derived, never stored as truth; `check` stores reconciliation only.
-- A schema validator runs before any geometry is built.
+- A schema validator runs before any geometry is built. The version 2 validator lives in `app/src/schema.js`; the reference `model-data` is accepted as a legacy v1 fixture via `allowLegacy`.
 
 ### 2. Component library
 

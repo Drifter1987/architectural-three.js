@@ -27,7 +27,7 @@ non-negotiable — see [`docs/decisions/0001-single-file.md`](docs/decisions/000
 | Three.js mastery track (modules 1–8) | curriculum + labs 1–3 passing (Gate D) |
 | Deep teardown | `docs/analysis/parti-pris-teardown.md` |
 | Targets + render architecture | `docs/targets.md`, `docs/decisions/` |
-| New app scaffold | not started (gated on teardown + targets) |
+| Phase 4 app shell | Vite 8 + singlefile scaffold, schema validator, build gate |
 
 ## The reference at a glance
 
@@ -51,9 +51,10 @@ within 2 m².
 
 ## Quick start
 
-Requirements: **Node 22+**, a browser with WebGL2.
+Requirements: **Node 22.12+** (Vite 8), a browser with WebGL2.
 
 ```bash
+npm install
 npm run serve
 # reference: http://127.0.0.1:8080/reference/parti-pris-three.js.html
 ```
@@ -62,14 +63,21 @@ npm run serve
 framework. `PORT=9000 npm run serve` changes the port.
 
 ```bash
-npm test               # 8 reference-integrity and model assertions
+npm test               # reference, schema and build-gate assertions
 npm run verify:reference
 npm run labs           # three.js labs 1–3 (needs `npm install` once)
+npm run dev            # shell at http://127.0.0.1:5173
+npm run build          # dist/index.html; fails unless exactly one self-contained file
 ```
 
 ## Repository map
 
 ```
+app/
+  index.html                 Phase 4 shell entry
+  src/                       shell UI + canonical wall-graph validator
+vite.config.js               Vite 8 + vite-plugin-singlefile
+scripts/check-build.mjs      one-file / no-external-assets build gate
 reference/
   parti-pris-three.js.html   frozen reference — never edited
   SHA256SUMS                 the hash that is enforced
@@ -83,7 +91,7 @@ docs/
 labs/
   01-core/ 02-wall-holes/ 03-window/   proof labs with assertions
 scripts/serve.mjs            zero-dependency static server
-tests/                       node:test integrity + model tests
+tests/                       node:test integrity, model, schema + build-gate tests
 ```
 
 ## Reference policy
