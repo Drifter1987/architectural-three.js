@@ -7,8 +7,16 @@ import {
   SRGBColorSpace
 } from 'three';
 
+import { gpuStoneTextures } from './gpu-stone.js';
+
 const TEXTURE_METERS = 2;
-const MAX_STONE_TEXTURES = 8;
+const STONE_TEXTURE_SIZE =
+  typeof window !== 'undefined' && window.innerWidth < 700 ? 1024 : 2048;
+const STONE_FALLBACK_SIZE = 512;
+const STONE_REPEAT = [1 / TEXTURE_METERS, 1 / TEXTURE_METERS];
+// Each finish holds a map plus a normal/bump relief texture; cap the cache
+// so 2K pairs do not grow.
+const MAX_STONE_TEXTURES = 4;
 const MAX_SMALL_TEXTURES = 8;
 
 export const DEFAULT_MATERIAL_STATE = Object.freeze({
@@ -28,8 +36,11 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.24, 0.36],
     block: [0.35, 0.7],
     joint: 0.01,
-    margin: 0,
+    jdepth: 0.014,
+    arris: 0.005,
     relief: 0.055,
+    cav: 45,
+    margin: 0,
     roughness: 0.96,
     bumpScale: 0.045
   },
@@ -41,8 +52,11 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.24, 0.32],
     block: [0.35, 0.65],
     joint: 0.008,
-    margin: 0,
+    jdepth: 0.008,
+    arris: 0.004,
     relief: 0.018,
+    cav: 60,
+    margin: 0,
     roughness: 0.94,
     bumpScale: 0.035
   },
@@ -54,8 +68,10 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.28, 0.4],
     block: [0.45, 0.9],
     joint: 0.005,
+    jdepth: 0.004,
+    arris: 0.003,
+    cav: 90,
     margin: 0.02,
-    relief: 0.012,
     roughness: 0.9,
     bumpScale: 0.025
   },
@@ -67,8 +83,10 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.25, 0.25],
     block: [0.4, 0.75],
     joint: 0.006,
+    jdepth: 0.006,
+    arris: 0.004,
+    cav: 110,
     margin: 0.022,
-    relief: 0.008,
     roughness: 0.92,
     bumpScale: 0.022
   },
@@ -80,8 +98,10 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.25, 0.3],
     block: [0.45, 0.8],
     joint: 0.005,
+    jdepth: 0.005,
+    arris: 0.003,
+    cav: 40,
     margin: 0.022,
-    relief: 0.006,
     roughness: 0.88,
     bumpScale: 0.018
   },
@@ -93,8 +113,10 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.3, 0.4],
     block: [0.6, 1.1],
     joint: 0.004,
+    jdepth: 0.005,
+    arris: 0.002,
+    cav: 50,
     margin: 0.02,
-    relief: 0.01,
     roughness: 0.95,
     bumpScale: 0.028
   },
@@ -106,8 +128,10 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.3, 0.3],
     block: [0.45, 0.85],
     joint: 0.006,
+    jdepth: 0.006,
+    arris: 0.003,
+    cav: 110,
     margin: 0.022,
-    relief: 0.01,
     roughness: 0.91,
     bumpScale: 0.024
   },
@@ -119,10 +143,43 @@ export const STONE_FINISHES = Object.freeze([
     course: [0.25, 0.3],
     block: [0.6, 1.2],
     joint: 0.004,
+    jdepth: 0.004,
+    arris: 0.002,
+    cav: 60,
     margin: 0,
-    relief: 0.002,
     roughness: 0.82,
     bumpScale: 0.012
+  },
+  {
+    key: 'comb',
+    name: 'Combed',
+    note: 'Fine parallel combing',
+    style: 'comb',
+    course: [0.25, 0.3],
+    block: [0.45, 0.8],
+    joint: 0.005,
+    jdepth: 0.006,
+    arris: 0.002,
+    cav: 50,
+    margin: 0.022,
+    roughness: 0.9,
+    bumpScale: 0.014
+  },
+  {
+    key: 'rubble',
+    name: 'Rubble',
+    note: 'Irregular rubble face',
+    style: 'rubble',
+    course: [0.3, 0.4],
+    block: [0.6, 1.1],
+    joint: 0.006,
+    jdepth: 0.008,
+    arris: 0.004,
+    relief: 0.04,
+    cav: 45,
+    margin: 0.02,
+    roughness: 0.96,
+    bumpScale: 0.04
   }
 ]);
 
@@ -311,11 +368,6 @@ function hasCanvas() {
   );
 }
 
-function canvasSize() {
-  if (typeof window === 'undefined') return 1024;
-  return (window.innerWidth || 1024) < 700 ? 512 : 1024;
-}
-
 function makeCanvas(size) {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
@@ -384,6 +436,14 @@ function courseHeights(finish, rand) {
     total += height;
   }
   return heights;
+}
+
+function paintWash(g, bx, by, bw, bh, lightAlpha, darkAlpha) {
+  const wash = g.createLinearGradient(bx, by, bx + bw, by + bh);
+  wash.addColorStop(0, `rgba(255, 253, 245, ${lightAlpha})`);
+  wash.addColorStop(1, `rgba(90, 75, 50, ${darkAlpha})`);
+  g.fillStyle = wash;
+  g.fillRect(bx, by, bw, bh);
 }
 
 function paintMarks(g, h, finish, bx, by, bw, bh, rand, px) {
@@ -558,11 +618,77 @@ function paintMarks(g, h, finish, bx, by, bw, bh, rand, px) {
     return;
   }
 
-  const wash = g.createLinearGradient(bx, by, bx + bw, by + bh);
-  wash.addColorStop(0, 'rgba(255, 253, 245, 0.12)');
-  wash.addColorStop(1, 'rgba(90, 75, 50, 0.07)');
-  g.fillStyle = wash;
-  g.fillRect(bx, by, bw, bh);
+  if (style === 'comb') {
+    paintWash(g, bx, by, bw, bh, 0.11, 0.07);
+
+    const spacing = Math.max(2.5, 0.0055 * px);
+    const lineWidth = Math.max(0.7, 0.0012 * px);
+    for (let x = bx + rand() * spacing; x < bx + bw; x += spacing) {
+      const end = x + (rand() - 0.5) * 2;
+      g.strokeStyle = 'rgba(78, 65, 45, 0.19)';
+      g.lineWidth = lineWidth;
+      g.beginPath();
+      g.moveTo(x, by);
+      g.lineTo(end, by + bh);
+      g.stroke();
+
+      h.strokeStyle = '#8a8a8a';
+      h.lineWidth = Math.max(0.7, lineWidth * 0.8);
+      h.beginPath();
+      h.moveTo(x, by);
+      h.lineTo(end, by + bh);
+      h.stroke();
+    }
+    return;
+  }
+
+  if (style === 'rubble') {
+    paintWash(g, bx, by, bw, bh, 0.1, 0.11);
+
+    const count = Math.max(90, Math.round(area / 1200));
+    for (let i = 0; i < count; i += 1) {
+      const x = bx + rand() * bw;
+      const y = by + rand() * bh;
+      const radius = (0.008 + rand() * 0.026) * px;
+      const squash = 0.55 + rand() * 0.75;
+      const turn = rand() * Math.PI;
+
+      const pit = g.createRadialGradient(
+        x,
+        y,
+        radius * 0.15,
+        x,
+        y,
+        radius
+      );
+      pit.addColorStop(0, 'rgba(66, 53, 36, 0.24)');
+      pit.addColorStop(0.7, 'rgba(95, 79, 56, 0.11)');
+      pit.addColorStop(1, 'rgba(255, 250, 236, 0)');
+      g.fillStyle = pit;
+      g.beginPath();
+      g.ellipse(x, y, radius, radius * squash, turn, 0, Math.PI * 2);
+      g.fill();
+
+      const relief = h.createRadialGradient(
+        x,
+        y,
+        radius * 0.15,
+        x,
+        y,
+        radius
+      );
+      relief.addColorStop(0, '#5e5e5e');
+      relief.addColorStop(0.72, '#949494');
+      relief.addColorStop(1, '#bdbdbd');
+      h.fillStyle = relief;
+      h.beginPath();
+      h.ellipse(x, y, radius, radius * squash, turn, 0, Math.PI * 2);
+      h.fill();
+    }
+    return;
+  }
+
+  paintWash(g, bx, by, bw, bh, 0.12, 0.07);
 
   const count = Math.max(18, Math.round(area / 900));
   for (let i = 0; i < count; i += 1) {
@@ -931,25 +1057,40 @@ function evict(cache, max) {
     const [key, entry] = entries.shift();
     entry.map?.dispose();
     entry.bump?.dispose();
+    entry.normal?.dispose();
     cache.delete(key);
   }
 }
 
+function fallbackStoneEntry(finish, tone, joint, size) {
+  // Keep the CPU fallback small enough that a GPU failure cannot
+  // reintroduce the 1–2 s 2K Canvas2D freeze.
+  const { map, bump } = drawStone(
+    finish,
+    tone,
+    joint,
+    Math.min(size, STONE_FALLBACK_SIZE)
+  );
+  return {
+    map: textureFromCanvas(map, { srgb: true, repeat: STONE_REPEAT }),
+    bump: textureFromCanvas(bump, { repeat: STONE_REPEAT }),
+    used: ++cacheTick
+  };
+}
+
 function stoneEntry(finish, tone, joint) {
-  const size = canvasSize();
-  const key = `${finish.key}|${tone.key}|${joint.key}|${size}`;
+  const size = STONE_TEXTURE_SIZE;
+  const key = `${finish.key}|${tone.key}|${joint.key}`;
   const existing = stoneCache.get(key);
   if (existing) {
     existing.used = ++cacheTick;
     return existing;
   }
 
-  const { map, bump } = drawStone(finish, tone, joint, size);
-  const entry = {
-    map: textureFromCanvas(map, { srgb: true, repeat: [0.5, 0.5] }),
-    bump: textureFromCanvas(bump, { repeat: [0.5, 0.5] }),
-    used: ++cacheTick
-  };
+  const gpu = gpuStoneTextures(finish, tone, joint, size);
+  const entry = gpu
+    ? { map: gpu.map, normal: gpu.normal, used: ++cacheTick }
+    : fallbackStoneEntry(finish, tone, joint, size);
   stoneCache.set(key, entry);
   evict(stoneCache, MAX_STONE_TEXTURES);
   return entry;
@@ -1151,8 +1292,10 @@ export function applyMaterialState(
   if (textures) {
     const stone = stoneEntry(finish, tone, joint);
     setTexture(materials.wall, 'map', stone.map);
-    setTexture(materials.wall, 'bumpMap', stone.bump);
-    materials.wall.bumpScale = finish.bumpScale ?? 0.03;
+    setTexture(materials.wall, 'normalMap', stone.normal ?? null);
+    setTexture(materials.wall, 'bumpMap', stone.bump ?? null);
+    materials.wall.normalScale.set(1, 1);
+    materials.wall.bumpScale = stone.normal ? 0 : (finish.bumpScale ?? 0.03);
     materials.wall.color.set(0xffffff);
     materials.wall.roughness = finish.roughness ?? 0.94;
 
@@ -1178,6 +1321,7 @@ export function applyMaterialState(
     materials.roofSide.roughness = roof.roughness ?? 0.86;
   } else {
     setTexture(materials.wall, 'map', null);
+    setTexture(materials.wall, 'normalMap', null);
     setTexture(materials.wall, 'bumpMap', null);
     assignColor(materials.wall, tone.base);
     materials.wall.roughness = finish.roughness ?? 0.94;

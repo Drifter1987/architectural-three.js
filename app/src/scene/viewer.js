@@ -27,7 +27,7 @@ const LIGHTS = {
     hemiSky: 0xe4f0ff,
     hemiGround: 0x4c493e,
     hemi: 1,
-    direction: [0.9, 0.5, -0.5]
+    direction: [0.786, 0.326, 0.501]
   },
   noon: {
     sky: 0xb8cbd4,
@@ -37,7 +37,7 @@ const LIGHTS = {
     hemiSky: 0xeef5ff,
     hemiGround: 0x51493c,
     hemi: 1.15,
-    direction: [0.2, 1.2, -0.4]
+    direction: [-0.091, 0.899, 0.429]
   },
   afternoon: {
     sky: 0xbfd0d6,
@@ -47,7 +47,7 @@ const LIGHTS = {
     hemiSky: 0xeaf2ff,
     hemiGround: 0x544a3b,
     hemi: 1.05,
-    direction: [0.65, 0.65, -0.65]
+    direction: [-0.763, 0.5, 0.681]
   },
   sunset: {
     sky: 0xd8b3a7,
@@ -57,7 +57,7 @@ const LIGHTS = {
     hemiSky: 0xffd7c2,
     hemiGround: 0x4b3d35,
     hemi: 0.9,
-    direction: [-0.9, 0.24, -0.4]
+    direction: [-0.956, 0.0785, 0.265]
   }
 };
 
@@ -80,7 +80,7 @@ export function createViewer(container, group) {
   renderer.domElement.setAttribute('aria-label', 'Interactive villa model');
   container.appendChild(renderer.domElement);
 
-  const camera = new PerspectiveCamera(38, 1, 0.1, 180);
+  const camera = new PerspectiveCamera(40, 1, 0.1, 180);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.075;

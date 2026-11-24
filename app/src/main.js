@@ -382,11 +382,11 @@ function render(nextModel) {
   viewer = nextViewer;
   built = nextBuilt;
   model = nextModel;
-  viewState = 'iso';
   loading?.remove();
 
   if (houseEditor?.isOpen()) setEditorOpen(false, { focus: false });
 
+  viewer.setView(viewState, { animate: false });
   viewer.setLight(lightState);
   viewer.setAutoRotate(autoRotate);
   syncControls();
@@ -506,6 +506,16 @@ if (debug) {
     },
     get material() {
       return { ...materialState };
+    },
+    get stoneInfo() {
+      const wall = built?.materials?.wall;
+      return {
+        map: wall?.map?.constructor?.name ?? null,
+        normal: wall?.normalMap?.constructor?.name ?? null,
+        bump: wall?.bumpMap?.constructor?.name ?? null,
+        mapSize: wall?.map?.image?.width ?? null,
+        normalScale: wall?.normalScale?.toArray() ?? null
+      };
     },
     get view() {
       return viewState;
